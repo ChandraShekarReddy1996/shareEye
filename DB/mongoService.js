@@ -1,33 +1,23 @@
-var MongoClient = require('mongodb').MongoClient;
-
-var db;
-
-MongoClient.connect('mongodb://localhost:27017/Library',function(err,base){
-  if(err){
-    console.log("error in db connection");
-  }
-  else{
-    console.log("mongo db connected >>>>>>>> ");
-    db = base;
-  }
-})
+var mongoose = require('/home/chandra/Desktop/jugnoo/Project/models/index').initialize().members;
 
 //Read opearatins of the mongodb
 var find = (data,doc,callbck) => {
-  db.collection(doc).findOne(data,(err,result) => {
-    console.log("inside find fun >>>")
+  var db = mongoose.model(doc)
+  db.find(data,(err,result) => {
     if(err)
     {
       return callbck(err);
     }
     else{
+      console.log(result)
       return callbck(null,result);
     }
   });
 }
 
 var findAll = (doc,data,callback) => {
-  db.collection(doc).find(data).toArray((err,result) => {
+  var db = mongoose.model(doc)
+  db.find(data,(err,result) => {
     if(err)
     {
       return callback(err);
@@ -40,13 +30,16 @@ var findAll = (doc,data,callback) => {
 
 //create opearation of the mongodb
 var create = (data,doc) =>{
-  db.collection(doc).insert(data)
+  var db = mongoose.model(doc)
+  var newbie = db(data);
+  newbie.save();
 }
 
 //update opearation of the mongodb
 var update = (pre,post,doc,callback) => {
-  var post = {$set : post}
-  db.collection(doc).updateMany(pre,post,(err,result) => {
+  var db = mongoose.model(doc)
+  console.log(post)
+  db.findOneAndUpdate(pre,post,{upsert : true},(err,result) => {
     if(err){
       return callback(err);
     }
@@ -58,7 +51,8 @@ var update = (pre,post,doc,callback) => {
 
 //Delete opearation of the mongodb
 var clear = (data,doc,callback) => {
-  db.collection(doc).deleteMany(data,(err,result) => {
+  var db = mongoose.model(doc)
+  db.findOneAndRemove(data,(err,result) => {
     console.log('Clearing >>>>>> ' + result)
     if(err)
     return callback(err);
@@ -67,4 +61,10 @@ var clear = (data,doc,callback) => {
   })
 }
 
-module.exports = {find , findAll, create, update, clear};
+module.exports = {
+  find ,
+  findAll,
+  create,
+  update,
+  clear
+};
